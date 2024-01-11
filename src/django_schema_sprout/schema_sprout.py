@@ -14,54 +14,63 @@ from django_schema_sprout.utils.singleton_class import SingletonArgs
 class SchemaSprout:
     __metaclass__ = SingletonArgs
 
-    def __init__(self, database: str, readonly: bool = False):
+    def __init__(self, database: str):
         self.database = database
-        self.readonly = readonly
+        self.connection = connections[self.database]
+        self.db_inspector = get_inspector(self.connection)
 
-        self.views = list()
-        self.serializers = list()
+        self.views = dict()
+        self.serializers = dict()
         self.models = dict()
 
         self.router = DefaultRouter()
 
-        self.create_models()
-
-    def create_models(self):
-        connection = connections[self.database]
-        db_inspector = get_inspector(connection)
-
+    def create_models(self, readonly: bool = False):
         # Create models only for tables
         types = {"t"}
-        with connection.cursor() as cursor:
-            tables_info = db_inspector.get_table_list(cursor)
-            for table in tables_info:
-                if table.type not in types:
-                    continue
-                table_name = table.name
-                table_nspname = table.nspname
-                if table_name == "studies" or table_name == "designs":
-                    pass
-                else:
-                    continue
-                try:
-                    attrs = db_inspector.get_attributes(
-                        cursor, table_name, table_nspname
-                    )
+        with self.connection.cursor() as cursor:
+            tables_info = self.db_inspector.get_table_list(cursor)
 
-                    model = self.models.get(
-                        f"{table_nspname}_{table_name}",
-                        create_model(self.database, table_name, attrs, table_nspname),
-                    )
-                    self.models[f"{table_nspname}_{table_name}"] = model
-                    serializer = create_serializer(model)
-                    self.serializers.append(serializer)
-                    view = create_view(model, serializer, self.readonly)
-                    self.views.append(view)
-                    _table_nspname = table_nspname.lower().replace("_", "-")
-                    _table_name = table_name.lower().replace("_", "-")
-                    self.router.register(rf"{_table_nspname}/{_table_name}", view)
+        for table in tables_info:
+            if table.type not in types:
+                continue
+            table_name = table.name
+            table_nspname = table.nspname
+            self.create_model(table_name, table_nspname, readonly)
 
-                except ProgrammingError as err:
-                    logging.warning(
-                        f"Couldn't get table description for table {table_name}. Reason: {err}"
-                    )
+    def create_model(self, table_name, table_nspname, readonly: bool = False):
+        nsp_name = f"{table_nspname}_{table_name}"
+        if (
+            nsp_name in self.models
+            and nsp_name in self.serializers
+            and nsp_name in self.views
+        ):
+            return
+
+        with self.connection.cursor() as cursor:
+            try:
+                attrs = self.db_inspector.get_attributes(
+                    cursor, table_name, table_nspname
+                )
+
+                model = self.models.get(
+                    nsp_name,
+                    create_model(self.database, table_name, attrs, table_nspname),
+                )
+                self.models[nsp_name] = model
+
+                serializer = self.serializers.get(nsp_name, create_serializer(model))
+                self.serializers[nsp_name] = serializer
+
+                view = create_view(model, serializer, readonly)
+                self.views[nsp_name] = view
+
+                _table_nspname = table_nspname.lower().replace("_", "-")
+                _table_name = table_name.lower().replace("_", "-")
+
+                self.router.register(f"{_table_nspname}/{_table_name}", view)
+
+            except ProgrammingError as err:
+                logging.warning(
+                    f"Couldn't get table description for table {table_name}. Reason: {err}"
+                )
