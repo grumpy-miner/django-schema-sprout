@@ -408,7 +408,6 @@ class PostgresDBInspect(DatabaseIntrospection):
             field = models.__getattribute__(field_type)
             field = field(**extra_params)
             attributes[column_name] = field
-            print(column_name, extra_params)
 
         if "name" in attributes:
             attributes["__str__"] = lambda x: x.__getattribute__("name")
@@ -416,7 +415,9 @@ class PostgresDBInspect(DatabaseIntrospection):
         return attributes
 
     def normalize_col_name(self, col_name, used_column_names, is_relation):
-        return Command.normalize_col_name(Command, col_name, used_column_names, is_relation)
+        return Command.normalize_col_name(
+            Command, col_name, used_column_names, is_relation
+        )
 
     def get_field_type(self, row):
         field_params = {}
