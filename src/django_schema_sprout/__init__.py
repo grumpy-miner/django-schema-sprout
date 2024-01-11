@@ -1,0 +1,1 @@
+from django_schema_sprout.schema_sprout import SchemaSprout
