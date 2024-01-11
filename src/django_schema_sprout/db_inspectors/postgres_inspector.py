@@ -53,7 +53,7 @@ class PostgresDBInspect(DatabaseIntrospection):
                 LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
                 where c.relkind IN ('f', 'm', 'p', 'r', 'v')
                 AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
-                AND pg_catalog.pg_table_is_visible(c.oid)
+                AND n.nspname = ANY(current_schemas(false))
                 and not exists (
                     select *
                     from pg_constraint
@@ -118,7 +118,7 @@ class PostgresDBInspect(DatabaseIntrospection):
                 c1.relname = %s AND
                 con.contype = 'f' AND
                 c1.relnamespace = c2.relnamespace AND
-                pg_catalog.pg_table_is_visible(c1.oid) AND
+                n1.nspname = ANY(current_schemas(false)) AND
                 n1.nspname = %s
         """,
             [table_name, nspname],
@@ -155,7 +155,7 @@ class PostgresDBInspect(DatabaseIntrospection):
             FROM pg_constraint AS c
             JOIN pg_class AS cl ON c.conrelid = cl.oid
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = cl.relnamespace
-            WHERE cl.relname = %s AND pg_catalog.pg_table_is_visible(cl.oid) AND n.nspname = %s
+            WHERE cl.relname = %s AND n.nspname = ANY(current_schemas(false)) AND n.nspname = %s
         """,
             [table_name, nspname],
         )
@@ -209,7 +209,7 @@ class PostgresDBInspect(DatabaseIntrospection):
                 LEFT JOIN pg_am am ON c2.relam = am.oid
                 LEFT JOIN
                     pg_attribute attr ON attr.attrelid = c.oid AND attr.attnum = idx.key
-                WHERE c.relname = %s AND pg_catalog.pg_table_is_visible(c.oid) AND n.nspname = %s
+                WHERE c.relname = %s AND n.nspname = ANY(current_schemas(false)) AND n.nspname = %s
             ) s2
             GROUP BY indexname, indisunique, indisprimary, amname, exprdef, attoptions;
         """,
@@ -288,7 +288,7 @@ class PostgresDBInspect(DatabaseIntrospection):
             WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
                 AND c.relname = %s
                 AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
-                AND pg_catalog.pg_table_is_visible(c.oid)
+                AND n.nspname = ANY(current_schemas(false))
                 AND n.nspname = %s
         """,
             [table_name, nspname],
