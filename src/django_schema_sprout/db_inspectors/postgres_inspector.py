@@ -313,14 +313,8 @@ class PostgresDBInspect(DatabaseIntrospection):
 
     def get_attributes(self, cursor, table_name, nspname):
         attributes = dict()
-        try:
-            relations = self.get_relations(cursor, table_name, nspname)
-        except NotImplementedError:
-            relations = {}
-        try:
-            constraints = self.get_constraints(cursor, table_name, nspname)
-        except NotImplementedError:
-            constraints = {}
+        relations = self.get_relations(cursor, table_name, nspname)
+        constraints = self.get_constraints(cursor, table_name, nspname)
 
         primary_key_column = self.get_primary_key_column(cursor, table_name, nspname)
         unique_columns = [
