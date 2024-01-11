@@ -36,7 +36,7 @@ class PostgresDBInspect(DatabaseIntrospection):
             """
                 with recursive fk_tree as (
                 -- All tables not referencing anything else except self references
-                select 
+                SELECT 
                     c.oid as reloid, 
                     c.relname as table_name, 
                     n.nspname as schema_name,
@@ -48,20 +48,20 @@ class PostgresDBInspect(DatabaseIntrospection):
                     obj_description(c.oid, 'pg_class') AS obj_desc,
                     null::text COLLATE "C" as referenced_table_name,
                     null::text COLLATE "C" as referenced_schema_name,
-                    1 as level
-                from pg_catalog.pg_class c
+                    1 AS level
+                FROM pg_catalog.pg_class c
                 LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-                where c.relkind IN ('f', 'm', 'p', 'r', 'v')
+                WHERE c.relkind IN ('f', 'm', 'p', 'r', 'v')
                 AND n.nspname NOT IN ('pg_catalog', 'pg_toast')
                 AND n.nspname = ANY(current_schemas(false))
-                and not exists (
-                    select *
-                    from pg_constraint
-                    where contype = 'f'
-                    and conrelid = c.oid AND conrelid != confrelid -- self-referencing-check
+                AND NOT EXISTS (
+                    SELECT *
+                    FROM pg_constraint
+                    WHERE contype = 'f'
+                    AND conrelid = c.oid AND conrelid != confrelid -- self-referencing-check
                 )
-                union all 
-                select 
+                UNION ALL 
+                SELECT 
                     ref.oid,      
                     ref.relname, 
                     rs.nspname,
@@ -74,11 +74,11 @@ class PostgresDBInspect(DatabaseIntrospection):
                     p.table_name,
                     p.schema_name,
                     p.level + 1
-                from pg_class ref
-                    join pg_namespace rs on rs.oid = ref.relnamespace
-                    join pg_constraint c on c.contype = 'f' and c.conrelid = ref.oid
-                    join fk_tree p on p.reloid = c.confrelid
-                where ref.relkind IN ('f', 'm', 'p', 'r', 'v')
+                FROM pg_class ref
+                    JOIN pg_namespace rs ON rs.oid = ref.relnamespace
+                    JOIN pg_constraint c ON c.contype = 'f' AND c.conrelid = ref.oid
+                    JOIN fk_tree p ON p.reloid = c.confrelid
+                WHERE ref.relkind IN ('f', 'm', 'p', 'r', 'v')
                 AND ref.oid != p.reloid  -- do not enter to tables referencing themselves.
                 ) 
                 SELECT 
@@ -327,7 +327,6 @@ class PostgresDBInspect(DatabaseIntrospection):
 
         used_column_names = []
         column_to_field_name = {}
-        used_relations = set()
 
         for row in table_description:
             extra_params = {}
