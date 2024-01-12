@@ -295,7 +295,8 @@ class PostgresDBInspect(DatabaseIntrospection):
         )
         field_map = {line[0]: line[1:] for line in cursor.fetchall()}
         cursor.execute(
-            "SELECT * FROM %s LIMIT 1" % f"{self.connection.ops.quote_name(nspname)}.{self.connection.ops.quote_name(table_name)}"
+            "SELECT * FROM %s LIMIT 1"
+            % f"{self.connection.ops.quote_name(nspname)}.{self.connection.ops.quote_name(table_name)}"
         )
         return [
             FieldInfo(
@@ -395,7 +396,7 @@ class PostgresDBInspect(DatabaseIntrospection):
                 extra_params["blank"] = False
                 extra_params["null"] = False
             extra_params["db_column"] = column_name
-            
+
             field = models.__getattribute__(field_type)
             field = field(**extra_params)
             attributes[column_name] = field
