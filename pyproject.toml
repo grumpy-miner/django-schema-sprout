@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "django-schema-sprout"
+version = "0.1.0"
+dependencies = [
+  "Django>=4.0,<5.0",
+  "djangorestframework>=3.14,<4.0",
+  "drf-yasg>=1.21.0,<2.0"
+]
+authors = [
+  { name="Paweł Puchalski", email="grumpy.miner.dev@gmail.com" },
+]
+description = "Schema Sprout connects to a third-party database to dynamically create models and views."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black ~=23.12.1",
+  "build ~=1.0.3"
+]
+test = [
+  "pytest ~=7.3.1",
+  "pytest-cov ~=4.1.0",
+  "pytest-django ~=4.7.0",
+  "pytest-postgresql ~=5.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/grumpy-miner/django-schema-sprout"
+Issues = "https://github.com/grumpy-miner/django-schema-sprout/issues"
+
+[tool.black]
+exclude = "/(.git|.eggs|build|dist|venv)/"
+
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+pythonpath = ". src"
+addopts = "--nomigrations --cov=src --cov-fail-under=95 --cov-report term-missing" 
