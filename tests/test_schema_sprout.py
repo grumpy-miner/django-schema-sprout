@@ -26,21 +26,58 @@ def database(postgresql_my):
         cursor.execute("CREATE SCHEMA foo;")
         cursor.execute("GRANT ALL ON SCHEMA foo TO postgres;")
         cursor.execute("GRANT USAGE ON SCHEMA foo TO postgres;")
+
         cursor.execute(
-            "CREATE TABLE test (id serial, num FLOAT, data varchar, PRIMARY KEY(id, num));"
+            """
+        CREATE TABLE test (
+            id serial,
+            num FLOAT,
+            data varchar,
+            PRIMARY KEY(id, num)
+        );
+        """
         )
+
         cursor.execute(
-            "CREATE TABLE foo.test (id serial, num FLOAT, data varchar, PRIMARY KEY(id, num));"
+            """
+        CREATE TABLE foo.test (
+            id serial,
+            num FLOAT,
+            data varchar,
+            PRIMARY KEY(id, num)
+        );"""
         )
+
         cursor.execute("CREATE VIEW test_view as SELECT * from test")
+
         cursor.execute(
-            "CREATE TABLE foo.span (span_id TEXT PRIMARY KEY, span_text TEXT UNIQUE, span_num INTEGER);"
+            """
+        CREATE TABLE foo.span (
+            span_id TEXT PRIMARY KEY,
+            span_text TEXT UNIQUE,
+            span_num INTEGER
+        );
+        """
         )
+
         cursor.execute(
-            "CREATE TABLE foo.eggs (eggs INTEGER PRIMARY KEY, eggs_text TEXT, span TEXT REFERENCES foo.span (span_id));"
+            """
+        CREATE TABLE foo.eggs (
+            eggs INTEGER PRIMARY KEY,
+            eggs_text TEXT,
+            span TEXT REFERENCES foo.span (span_id)
+        );
+        """
         )
+
         cursor.execute(
-            "CREATE TABLE studies (nct_id varchar PRIMARY KEY, CONSTRAINT studies_nct_id_fkey FOREIGN KEY (nct_id) REFERENCES studies(nct_id));"
+            """
+            CREATE TABLE studies (
+                nct_id varchar PRIMARY KEY,
+                CONSTRAINT studies_nct_id_fkey FOREIGN KEY (nct_id)
+                REFERENCES studies(nct_id)
+            );
+            """
         )
         cursor.execute('SET search_path = "$user", public, foo;')
 

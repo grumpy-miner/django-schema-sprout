@@ -72,5 +72,6 @@ class SchemaSprout:
 
             except ProgrammingError as err:
                 logging.warning(
-                    f"Couldn't get table description for table {table_name}. Reason: {err}"
+                    f"Couldn't get table description for table {table_name}. "
+                    f"Reason: {err}"
                 )

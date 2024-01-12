@@ -1,4 +1,4 @@
-from django_schema_sprout.db_inspectors import PostgresDBInspect
+from django_schema_sprout.db_inspectors.postgres_inspector import PostgresDBInspect
 
 
 def get_inspector(connection):

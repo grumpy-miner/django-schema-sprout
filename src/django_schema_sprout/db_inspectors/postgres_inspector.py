@@ -30,15 +30,16 @@ class PostgresDBInspect(DatabaseIntrospection):
 
     def get_table_list(self, cursor):
         """
-        Return a list of table and view names in the current database in order of dependency.
+        Return a list of table and view names in
+        the current database in order of dependency.
         """
         cursor.execute(
             """
                 with recursive fk_tree as (
                 -- All tables not referencing anything else except self references
-                SELECT 
-                    c.oid as reloid, 
-                    c.relname as table_name, 
+                SELECT
+                    c.oid as reloid,
+                    c.relname as table_name,
                     n.nspname as schema_name,
                     CASE
                         WHEN c.relispartition THEN 'p'
@@ -58,12 +59,13 @@ class PostgresDBInspect(DatabaseIntrospection):
                     SELECT *
                     FROM pg_constraint
                     WHERE contype = 'f'
-                    AND conrelid = c.oid AND conrelid != confrelid -- self-referencing-check
+                    -- self-referencing-check
+                    AND conrelid = c.oid AND conrelid != confrelid
                 )
-                UNION ALL 
-                SELECT 
-                    ref.oid,      
-                    ref.relname, 
+                UNION ALL
+                SELECT
+                    ref.oid,
+                    ref.relname,
                     rs.nspname,
                     CASE
                         WHEN ref.relispartition THEN 'p'
@@ -79,10 +81,11 @@ class PostgresDBInspect(DatabaseIntrospection):
                     JOIN pg_constraint c ON c.contype = 'f' AND c.conrelid = ref.oid
                     JOIN fk_tree p ON p.reloid = c.confrelid
                 WHERE ref.relkind IN ('f', 'm', 'p', 'r', 'v')
-                AND ref.oid != p.reloid  -- do not enter to tables referencing themselves.
-                ) 
-                SELECT 
-                    table_name, 
+                -- do not enter to tables referencing themselves.
+                AND ref.oid != p.reloid
+                )
+                SELECT
+                    table_name,
                     relcase,
                     obj_desc,
                     schema_name
@@ -128,8 +131,8 @@ class PostgresDBInspect(DatabaseIntrospection):
     def get_constraints(self, cursor, table_name, nspname):
         """
         Retrieve any constraints or keys (unique, pk, fk, check, index) across
-        one or more column in given namespace. Also retrieve the definition of expression-based
-        indexes.
+        one or more column in given namespace.
+        Also retrieve the definition of expression-based indexes.
         """
         constraints = {}
         # Loop over the key table, collecting things as constraints. The column
@@ -155,7 +158,9 @@ class PostgresDBInspect(DatabaseIntrospection):
             FROM pg_constraint AS c
             JOIN pg_class AS cl ON c.conrelid = cl.oid
             LEFT JOIN pg_catalog.pg_namespace n ON n.oid = cl.relnamespace
-            WHERE cl.relname = %s AND n.nspname = ANY(current_schemas(false)) AND n.nspname = %s
+            WHERE cl.relname = %s
+            AND n.nspname = ANY(current_schemas(false))
+            AND n.nspname = %s
         """,
             [table_name, nspname],
         )
@@ -209,7 +214,9 @@ class PostgresDBInspect(DatabaseIntrospection):
                 LEFT JOIN pg_am am ON c2.relam = am.oid
                 LEFT JOIN
                     pg_attribute attr ON attr.attrelid = c.oid AND attr.attnum = idx.key
-                WHERE c.relname = %s AND n.nspname = ANY(current_schemas(false)) AND n.nspname = %s
+                WHERE c.relname = %s
+                AND n.nspname = ANY(current_schemas(false))
+                AND n.nspname = %s
             ) s2
             GROUP BY indexname, indisunique, indisprimary, amname, exprdef, attoptions;
         """,
@@ -294,9 +301,11 @@ class PostgresDBInspect(DatabaseIntrospection):
             [table_name, nspname],
         )
         field_map = {line[0]: line[1:] for line in cursor.fetchall()}
+
+        _quote_name = self.connection.ops.quote_name
         cursor.execute(
             "SELECT * FROM %s LIMIT 1"
-            % f"{self.connection.ops.quote_name(nspname)}.{self.connection.ops.quote_name(table_name)}"
+            % f"{_quote_name(nspname)}.{_quote_name(table_name)}"
         )
         return [
             FieldInfo(

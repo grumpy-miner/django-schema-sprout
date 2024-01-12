@@ -38,37 +38,106 @@ def database(postgresql_my):
         cursor.execute("GRANT USAGE ON SCHEMA foo TO postgres;")
         cursor.execute("GRANT ALL ON SCHEMA bar TO postgres;")
         cursor.execute("GRANT USAGE ON SCHEMA bar TO postgres;")
-        cursor.execute(
-            "CREATE TABLE test (id serial, num FLOAT, data varchar, PRIMARY KEY(id, num));"
-        )
-        cursor.execute(
-            "CREATE TABLE foo.span (span_id TEXT PRIMARY KEY, span_text TEXT UNIQUE, span_num INTEGER);"
-        )
-        cursor.execute(
-            "CREATE TABLE foo.eggs (eggs INTEGER PRIMARY KEY, eggs_text TEXT, span TEXT REFERENCES foo.span (span_id));"
-        )
-        cursor.execute(
-            "CREATE TABLE bar.baz (id serial PRIMARY KEY, foo_span TEXT REFERENCES foo.span (span_id));"
-        )
-        cursor.execute(
-            "CREATE TABLE bar.az (id serial PRIMARY KEY, baz INTEGER REFERENCES bar.baz (id));"
-        )
-        cursor.execute(
-            "CREATE TABLE bar.ab (id serial PRIMARY KEY, az INTEGER REFERENCES bar.az (id));"
-        )
-        cursor.execute(
-            "CREATE TABLE studies (nct_id VARCHAR PRIMARY KEY, CONSTRAINT studies_nct_id_fkey FOREIGN KEY (nct_id) REFERENCES studies(nct_id));"
-        )
-        cursor.execute("CREATE TABLE simple (name VARCHAR);")
-
-        cursor.execute("CREATE TABLE unique_without_primary (name VARCHAR UNIQUE);")
 
         cursor.execute(
-            "CREATE TABLE primary_with_uique (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
+            """
+        CREATE TABLE test (
+            id serial,
+            num FLOAT,
+            data varchar,
+            PRIMARY KEY(id, num)
+        );
+        """
         )
 
         cursor.execute(
-            "CREATE TABLE reference_to_unique (id INTEGER PRIMARY KEY, name TEXT REFERENCES primary_with_uique (name));"
+            """
+        CREATE TABLE foo.span (
+            span_id TEXT PRIMARY KEY,
+            span_text TEXT UNIQUE,
+            span_num INTEGER
+        );
+        """
+        )
+        cursor.execute(
+            """
+        CREATE TABLE foo.eggs (
+            eggs INTEGER PRIMARY KEY,
+            eggs_text TEXT,
+            span TEXT REFERENCES foo.span (span_id)
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE bar.baz (
+            id serial PRIMARY KEY,
+            foo_span TEXT REFERENCES foo.span (span_id)
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE bar.az (
+            id serial PRIMARY KEY,
+            baz INTEGER REFERENCES bar.baz (id)
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE bar.ab (
+            id serial PRIMARY KEY,
+            az INTEGER REFERENCES bar.az (id)
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE studies (
+            nct_id VARCHAR PRIMARY KEY,
+            CONSTRAINT studies_nct_id_fkey FOREIGN KEY (nct_id)
+            REFERENCES studies(nct_id)
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE simple (
+            name VARCHAR
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE unique_without_primary (
+            name VARCHAR UNIQUE
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE primary_with_uique (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE
+        );
+        """
+        )
+
+        cursor.execute(
+            """
+        CREATE TABLE reference_to_unique (
+            id INTEGER PRIMARY KEY,
+            name TEXT REFERENCES primary_with_uique (name)
+        );
+        """
         )
 
         cursor.execute(
@@ -85,6 +154,7 @@ def database(postgresql_my):
         CREATE INDEX idx_email ON test_table (email);
         """
         )
+
         cursor.execute('SET search_path = "$user", public, foo, bar;')
 
     yield postgresql_my
@@ -351,7 +421,7 @@ def test_get_primary_key_column(database):
     inspector = PostgresDBInspect(connections["django_test"])
     with database.cursor() as cursor:
         assert inspector.get_primary_key_column(cursor, "span", "foo") == "span_id"
-        assert inspector.get_primary_key_column(cursor, "simple", "public") == None
+        assert inspector.get_primary_key_column(cursor, "simple", "public") is None
         assert inspector.get_primary_key_column(cursor, "studies", "public") == "nct_id"
         assert inspector.get_primary_key_column(cursor, "test", "public") == "id"
         assert inspector.get_primary_key_column(cursor, "baz", "bar") == "id"
@@ -365,7 +435,7 @@ def test_get_primary_key_columns(database):
     inspector = PostgresDBInspect(connections["django_test"])
     with database.cursor() as cursor:
         assert inspector.get_primary_key_columns(cursor, "span", "foo") == ["span_id"]
-        assert inspector.get_primary_key_columns(cursor, "simple", "public") == None
+        assert inspector.get_primary_key_columns(cursor, "simple", "public") is None
         assert inspector.get_primary_key_columns(cursor, "studies", "public") == [
             "nct_id"
         ]

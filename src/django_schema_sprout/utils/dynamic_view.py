@@ -12,9 +12,9 @@ def create_view(
     Create a view class for the given model and serializer.
 
     Args:
-        model (DynamicDbModel): The model to create the view for.
         serializer (serializers.ModelSerializer): The serializer class to use.
-        readonly (bool, optional): Whether the view should be read-only. Defaults to False.
+        model (DynamicDbModel): The model to create the view for.
+        readonly (bool, optional): Whether the view should be read-only. Default False.
 
     Returns:
         type: The dynamically created view class.

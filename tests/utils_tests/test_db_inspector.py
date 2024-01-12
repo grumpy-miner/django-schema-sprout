@@ -1,13 +1,9 @@
-from typing import Any
 from unittest.mock import Mock
 
 from django.test import TestCase
-from django.db import connections
-from django.db.utils import ConnectionHandler
-from django.db.backends.postgresql.base import DatabaseWrapper
 
 from django_schema_sprout.utils.db_inspector import get_inspector
-from django_schema_sprout.db_inspectors import PostgresDBInspect
+from django_schema_sprout.db_inspectors.postgres_inspector import PostgresDBInspect
 
 
 class DBInspectorTestCase(TestCase):
@@ -25,6 +21,6 @@ class DBInspectorTestCase(TestCase):
         connection = Mock()
         connection.vendor = "mysql"
 
-        # Call the get_inspector function and assert that it raises a NotImplementedError
+        # Call the get_inspector function and assert raise of NotImplementedError
         with self.assertRaises(NotImplementedError):
             get_inspector(connection)
