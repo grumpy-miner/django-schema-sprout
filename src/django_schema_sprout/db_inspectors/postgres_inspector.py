@@ -295,7 +295,7 @@ class PostgresDBInspect(DatabaseIntrospection):
         )
         field_map = {line[0]: line[1:] for line in cursor.fetchall()}
         cursor.execute(
-            "SELECT * FROM %s LIMIT 1" % self.connection.ops.quote_name(table_name)
+            "SELECT * FROM %s LIMIT 1" % f"{self.connection.ops.quote_name(nspname)}.{self.connection.ops.quote_name(table_name)}"
         )
         return [
             FieldInfo(
@@ -359,7 +359,6 @@ class PostgresDBInspect(DatabaseIntrospection):
                     ref_pk_column = self.get_primary_key_column(
                         cursor, ref_db_table, ref_db_nspname
                     )
-                    extra_params["db_column"] = ref_db_column
                     if ref_pk_column and ref_pk_column != ref_db_column:
                         extra_params["to_field"] = ref_db_column
                 if (
@@ -377,11 +376,9 @@ class PostgresDBInspect(DatabaseIntrospection):
 
                 else:
                     rel_to = f"{relations[column_name][2]}_{relations[column_name][1]}"
-                    rel_to = f"{relations[column_name][2]}_{relations[column_name][1]}"
                     extra_params["to"] = rel_to
                     extra_params["on_delete"] = models.DO_NOTHING
                 field_type = rel_type
-                extra_params["db_column"] = ref_db_column
             else:
                 field_type, field_params, field_notes = self.get_field_type(row)
 
@@ -397,7 +394,8 @@ class PostgresDBInspect(DatabaseIntrospection):
             if extra_params.get("primary_key"):
                 extra_params["blank"] = False
                 extra_params["null"] = False
-
+            extra_params["db_column"] = column_name
+            
             field = models.__getattribute__(field_type)
             field = field(**extra_params)
             attributes[column_name] = field
