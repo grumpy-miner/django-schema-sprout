@@ -8,7 +8,6 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from django_schema_sprout.schema_sprout import SchemaSprout
-import pytest
 from django.db import ProgrammingError
 
 
