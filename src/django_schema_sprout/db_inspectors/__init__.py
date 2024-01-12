@@ -1,1 +1,0 @@
-from .postgres_inspector import PostgresDBInspect
