@@ -11,8 +11,7 @@ from django_schema_sprout.utils.dynamic_serializer import create_serializer
 from django_schema_sprout.utils.singleton_class import SingletonArgs
 
 
-class SchemaSprout:
-    __metaclass__ = SingletonArgs
+class SchemaSprout(metaclass=SingletonArgs):
 
     def __init__(self, database: str):
         self.database = database

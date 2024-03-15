@@ -14,7 +14,7 @@ class SingletonArgs(type):
         cls._init[cls] = dct.get("__init__", None)
 
     def __call__(cls, *args, **kwargs):
-        init = cls._init[cls]
+        init = cls._init.get(cls)
         if init is not None:
             key = (
                 cls,

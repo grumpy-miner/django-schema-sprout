@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "django-schema-sprout"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
   "Django>=4.0,<5.0",
   "djangorestframework>=3.14,<4.0",
